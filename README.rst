@@ -22,7 +22,7 @@ Setting up development environment
 It is recommended to use ``virtualenv`` make a clean development environment.
 Setting up dev environment for writing a plugin is easy::
 
-  $ git clone https://github.com/kedder/ofxstatement-sample ofxstatement-  yourbank
+  $ git clone https://github.com/kedder/ofxstatement-sample ofxstatement-yourbank
   $ cd ofxstatement-yourbank
   $ virtualenv -p python3 --no-site-packages .venv
   $ . .venv/bin/activate
