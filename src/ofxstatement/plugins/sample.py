@@ -7,7 +7,7 @@ class SamplePlugin(Plugin):
     """Sample plugin (for developers only)
     """
 
-    def getParser(self, filename):
+    def get_parser(self, filename):
         return SampleParser(filename)
 
 
