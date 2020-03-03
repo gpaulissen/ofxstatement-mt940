@@ -2,20 +2,24 @@
 """Setup
 """
 from setuptools import find_packages
+from setuptools.command.test import test as TestCommand
 from distutils.core import setup
+
+import unittest
 
 version = "0.0.1"
 
-with open('README.rst') as f:
+with open('README.md') as f:
     long_description = f.read()
 
-setup(name='ofxstatement-sample',
+setup(name='ofxstatement-nl-ing',
       version=version,
-      author="Andrey Lebedev",
-      author_email="andrey@lebedev.lt",
-      url="https://github.com/kedder/ofxstatement",
-      description=("Sample plugin for ofxstatement"),
+      author="Gert-Jan Paulissen",
+      author_email="gert.jan.paulissen@gmail.com",
+      url="https://github.com/gpaulissen/ofxstatement-nl-ing",
+      description=("OFXStatement plugin for ING Netherlands"),
       long_description=long_description,
+      long_description_content_type='text/markdown',
       license="GPLv3",
       keywords=["ofx", "banking", "statement"],
       classifiers=[
@@ -32,9 +36,10 @@ setup(name='ofxstatement-sample',
       namespace_packages=["ofxstatement", "ofxstatement.plugins"],
       entry_points={
           'ofxstatement':
-          ['sample = ofxstatement.plugins.sample:SamplePlugin']
+          ['ingnl = ofxstatement.plugins.ingnl:IngNlPlugin']
           },
       install_requires=['ofxstatement'],
+      extras_require={'test': ["pytest"]},
       include_package_data=True,
       zip_safe=True
       )
