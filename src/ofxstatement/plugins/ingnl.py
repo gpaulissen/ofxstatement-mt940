@@ -1,6 +1,7 @@
 import csv
+
 from ofxstatement.plugin import Plugin
-# from ofxstatement.parser import StatementParser
+from ofxstatement.exceptions import ParseError
 from ofxstatement.parser import CsvStatementParser
 from ofxstatement.statement import Statement, StatementLine, BankAccount, generate_transaction_id, recalculate_balance
 
@@ -25,7 +26,8 @@ class IngNlStatementParser(CsvStatementParser):
     def __init__(self, fin):
         # Python 3 needed
         super().__init__(fin)
-        self.statement = Statement(bank_id=None, account_id=None, currency="EUR", account_type="CHECKING")
+        # Use the BIC code for ING Netherlands
+        self.statement = Statement(bank_id="INGBNL2AXXX", account_id=None, currency="EUR", account_type="CHECKING")
         
 
 class IngNlParser(IngNlStatementParser):
@@ -127,36 +129,46 @@ class IngNlParser(IngNlStatementParser):
         """Parse given transaction line and return StatementLine object
         """
 
-        # Skip header
-        if line == ["Datum", "Naam / Omschrijving", "Rekening", "Tegenrekening", "Code", "Af Bij", "Bedrag (EUR)", "MutatieSoort", "Mededelingen"]:
-            return None
-        
-        assert line[5] in ['Af', 'Bij']
-        if line[5] == 'Af':
-            line[self.mappings['amount']] = '-' + line[self.mappings['amount']]
-                
-        if line[self.mappings['bank_account_to']]:
-            line[self.mappings['payee']] = "{} ({})".format(line[self.mappings['payee']], line[self.mappings['bank_account_to']])
-        else:
-            line[self.mappings['memo']] = "{}, {}".format(line[self.mappings['payee']], line[self.mappings['memo']])
-            line[self.mappings['payee']] = None
-                
-        # Python 3 needed
-        stmt_line = super().parse_record(line)
+        try:
+            # Skip header
+            if line == ["Datum", "Naam / Omschrijving", "Rekening", "Tegenrekening", "Code", "Af Bij", "Bedrag (EUR)", "MutatieSoort", "Mededelingen"]:
+                return None
 
-        # Remove zero-value notifications
-        if stmt_line.amount == 0:
-            return None           
-        
-        # Determine some fields not in the self.mappings
-        stmt_line.id = generate_transaction_id(stmt_line)
-        
-        if stmt_line.amount < 0:
-            stmt_line.trntype = "DEBIT"
-        else:
-            stmt_line.trntype = "CREDIT"
+            # line[2] contains the account number
+            if self.statement.account_id:
+                assert self.statement.account_id == line[2], "In a CSV file only one account is allowed; previous account: {}, this line's account: {}".format(self.statement.account_id, line[2])                
+            else:
+                self.statement.account_id = line[2]
+            
+            assert line[5] in ['Af', 'Bij']
 
-        if stmt_line.bank_account_to:
-            stmt_line.bank_account_to = BankAccount(bank_id=None, acct_id=stmt_line.bank_account_to)
+            if line[5] == 'Af':
+                line[self.mappings['amount']] = '-' + line[self.mappings['amount']]
+            
+            if line[self.mappings['bank_account_to']]:
+                line[self.mappings['payee']] = "{} ({})".format(line[self.mappings['payee']], line[self.mappings['bank_account_to']])
+            else:
+                line[self.mappings['memo']] = "{}, {}".format(line[self.mappings['payee']], line[self.mappings['memo']])
+                line[self.mappings['payee']] = None
+            
+            # Python 3 needed
+            stmt_line = super().parse_record(line)
+
+            # Remove zero-value notifications
+            if stmt_line.amount == 0:
+                return None           
+        
+            # Determine some fields not in the self.mappings
+            stmt_line.id = generate_transaction_id(stmt_line)
+        
+            if stmt_line.amount < 0:
+                stmt_line.trntype = "DEBIT"
+            else:
+                stmt_line.trntype = "CREDIT"
+
+            if stmt_line.bank_account_to:
+                stmt_line.bank_account_to = BankAccount(bank_id=None, acct_id=stmt_line.bank_account_to)
+        except Exception as e:
+            raise ParseError(self.cur_record, str(e))
 
         return stmt_line
