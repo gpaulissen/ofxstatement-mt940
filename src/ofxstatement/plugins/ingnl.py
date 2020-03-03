@@ -6,7 +6,7 @@ from ofxstatement.plugin import Plugin
 from ofxstatement.exceptions import ParseError
 from ofxstatement.parser import CsvStatementParser
 from ofxstatement.statement import Statement, BankAccount
-from ofxstatement.statement import generate_transaction_id, recalculate_balance
+from ofxstatement.statement import generate_transaction_id
 
 
 # Need Python 3 for super() syntax
@@ -123,9 +123,14 @@ class IngNlParser(IngNlStatementParser):
         super() implementation will call to split_records and parse_record to
         process the file.
         """
-        stmt = super().parse()
+
         # Python 3 needed
-        recalculate_balance(stmt)
+        stmt = super().parse()
+
+        # GJP 2020-03-03
+        # No need to (re)calculate the balance since there is no history.
+
+        # recalculate_balance(stmt)
         return stmt
 
     def split_records(self):
