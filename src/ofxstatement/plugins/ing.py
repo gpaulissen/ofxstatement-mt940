@@ -13,7 +13,7 @@ assert sys.version_info[0] >= 3, "At least Python 3 is required."
 
 
 class Plugin(plugin.Plugin):
-    """ofxstatement.plugins.ing plugin (ING Netherlands)
+    """ING Bank, The Netherlands, CSV (https://www.ing.nl/)
     """
     def get_parser(self, f):
         fin = open(f, "r", encoding="ISO-8859-1") if isinstance(f, str) else f

@@ -15,7 +15,7 @@ assert sys.version_info[0] >= 3, "At least Python 3 is required."
 
 
 class Plugin(plugin.Plugin):
-    """ofxstatement.plugins.icscards plugin (ICS Visa, https://icscards.nl)
+    """ICSCards, The Netherlands, PDF (https://icscards.nl/)
     """
 
     def get_parser(self, f):
