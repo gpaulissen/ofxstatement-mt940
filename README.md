@@ -19,11 +19,6 @@ site. If your bank is missing, you can develop your own plugin.
 
 ## Installation
 
-### From PyPI repositories
-```
-pip3 install ofxstatement-dutch
-```
-
 ### From source
 ```
 git clone https://github.com/gpaulissen/ofxstatement-dutch.git
