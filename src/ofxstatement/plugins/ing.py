@@ -13,7 +13,7 @@ assert sys.version_info[0] >= 3, "At least Python 3 is required."
 
 
 class Plugin(plugin.Plugin):
-    """ofxstatement.plugins.nl.ing plugin (ING Netherlands)
+    """ofxstatement.plugins.ing plugin (ING Netherlands)
     """
     def get_parser(self, f):
         fin = open(f, "r", encoding="ISO-8859-1") if isinstance(f, str) else f

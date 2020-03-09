@@ -94,6 +94,7 @@ if __name__ == '__main__':
         keywords=["ofx", "banking", "statement", "ing", "icscards"],
         packages=find_packages('src'),
         package_dir={'': 'src'},
+        namespace_packages=["ofxstatement", "ofxstatement.plugins"],
         long_description=readme + changes,
         long_description_content_type='text/markdown',
         include_package_data=True,
@@ -117,7 +118,7 @@ if __name__ == '__main__':
         ],
         entry_points={
             'ofxstatement':
-            ['nl-ing = ofxstatement.plugins.nl.ing:Plugin',
-             'nl-icscards = ofxstatement.plugins.nl.icscards:Plugin']
+            ['nl-ing = ofxstatement.plugins.ing:Plugin',
+             'nl-icscards = ofxstatement.plugins.icscards:Plugin']
         },
     )

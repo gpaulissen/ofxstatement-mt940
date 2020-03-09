@@ -5,7 +5,7 @@ from unittest import TestCase
 from decimal import Decimal
 from datetime import datetime
 
-from ofxstatement.plugins.nl.icscards import Plugin
+from ofxstatement.plugins.icscards import Plugin
 
 
 class ParserTest(TestCase):

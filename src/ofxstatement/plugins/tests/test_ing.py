@@ -7,7 +7,7 @@ import pytest
 
 from ofxstatement.exceptions import ParseError
 
-from ofxstatement.plugins.nl.ing import Parser, Plugin
+from ofxstatement.plugins.ing import Parser, Plugin
 
 
 class ParserTest(TestCase):
