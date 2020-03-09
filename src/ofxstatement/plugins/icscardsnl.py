@@ -21,7 +21,7 @@ class ICSCardsNlPlugin(Plugin):
 
     def get_parser(self, f):
         pdftotext = ["pdftotext", "-layout", "-nodiag", "-nopgbrk", f]
-        fin = Popen(pdftotext, stdout=PIPE, universal_newlines=True).stdout\
+        fin = Popen(pdftotext, stdout=PIPE, universal_newlines=True)\
             if isinstance(f, str) else f
         return ICSCardsNlParser(fin)
 
@@ -114,8 +114,9 @@ should be equal to the end balance ({})".
 
         statement_expr = \
             re.compile(r'^\d\d [a-z]{3}\s+\d\d [a-z]{3}.+[0-9,.]+\s+(Af|Bij)$')
+        reader = self.fin.stdout if isinstance(self.fin, Popen) else self.fin
 
-        for line in self.fin:
+        for line in reader:
             line = line.strip()
             # to ease the parsing pain
             row = convert_str_to_list(line)
