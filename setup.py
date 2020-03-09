@@ -91,7 +91,7 @@ if __name__ == '__main__':
         description=about['__description__'],
         url=about['__url__'],
         license=about['__license__'],
-        keywords=["ofx", "banking", "statement", "ing"],
+        keywords=["ofx", "banking", "statement", "ing", "icscards"],
         packages=find_packages('src'),
         package_dir={'': 'src'},
         long_description=readme + changes,
@@ -117,7 +117,7 @@ if __name__ == '__main__':
         ],
         entry_points={
             'ofxstatement':
-            ['ingnl = ofxstatement.plugins.ingnl:IngNlPlugin',
-             'icscardsnl = ofxstatement.plugins.icscardsnl:ICSCardsNlPlugin']
+            ['nl-ing = ofxstatement.plugins.nl.ing:Plugin',
+             'nl-icscards = ofxstatement.plugins.nl.icscards:Plugin']
         },
     )

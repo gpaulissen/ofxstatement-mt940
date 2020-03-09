@@ -7,10 +7,10 @@ import pytest
 
 from ofxstatement.exceptions import ParseError
 
-from ofxstatement.plugins.ingnl import IngNlParser, IngNlPlugin
+from ofxstatement.plugins.nl.ing import Parser, Plugin
 
 
-class IngNlParserTest(TestCase):
+class ParserTest(TestCase):
 
     def test_ok(self):
         # Lets define some sample csv to parse and write it to file-like object
@@ -26,7 +26,7 @@ class IngNlParserTest(TestCase):
         f = io.StringIO(csv)
 
         # Create and configure csv parser:
-        parser = IngNlParser(f)
+        parser = Parser(f)
 
         # And parse csv:
         statement = parser.parse()
@@ -76,7 +76,7 @@ class IngNlParserTest(TestCase):
         f = io.StringIO(csv)
 
         # Create and configure csv parser:
-        parser = IngNlPlugin(None, None).get_parser(f)
+        parser = Plugin(None, None).get_parser(f)
 
         # And parse csv:
         parser.parse()

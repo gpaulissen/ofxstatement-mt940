@@ -4,10 +4,9 @@ import locale
 import re
 from decimal import Decimal
 from datetime import datetime
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, STDOUT
 
-from ofxstatement.plugin import Plugin
-from ofxstatement.parser import StatementParser
+from ofxstatement import plugin, parser
 from ofxstatement.statement import Statement, StatementLine
 from ofxstatement.statement import generate_transaction_id, recalculate_balance
 
@@ -15,18 +14,21 @@ from ofxstatement.statement import generate_transaction_id, recalculate_balance
 assert sys.version_info[0] >= 3, "At least Python 3 is required."
 
 
-class ICSCardsNlPlugin(Plugin):
-    """ICSCardsNl plugin
+class Plugin(plugin.Plugin):
+    """ofxstatement.plugins.nl.icscards plugin (ICS Visa, https://icscards.nl)
     """
 
     def get_parser(self, f):
-        pdftotext = ["pdftotext", "-layout", "-nodiag", "-nopgbrk", f]
-        fin = Popen(pdftotext, stdout=PIPE, universal_newlines=True)\
+        pdftotext = ["pdftotext", "-layout", "-nodiag", "-nopgbrk", f, '-']
+        fin = Popen(pdftotext,
+                    stdout=PIPE,
+                    stderr=STDOUT,
+                    universal_newlines=True)\
             if isinstance(f, str) else f
-        return ICSCardsNlParser(fin)
+        return Parser(fin)
 
 
-class ICSCardsNlParser(StatementParser):
+class Parser(parser.StatementParser):
     def __init__(self, fin):
         self.fin = fin
 
@@ -83,16 +85,12 @@ should be equal to the end balance ({})".
 
         # determine amount_out
         assert isinstance(amount_in, str)
-        # Is amount something like 1.827,97 ? (dutch) or 1,827.97 ?
-        if amount_in[-3] == ',':
-            amount_in = amount_in.replace('.', '').replace(',', '.')
-            # amount something like € 1.827,97 ?
-        if not(amount_in[0] >= '0' and amount_in[0] <= '9') \
-           and amount_in[1] == ' ':
-            # Skip euro sign and take care of comma's and points
-            amount_out = amount_in[2:]
-        else:
-            amount_out = amount_in
+        # Amount something like 1.827,97, € 1.827,97 (both dutch) or 1,827.97?
+        m = re.search(r'^(\S+\s)?([0-9,.]+)$', amount_in)
+        assert m is not None
+        amount_out = m.group(2)
+        if amount_out[-3] == ',':
+            amount_out = amount_out.replace('.', '').replace(',', '.')
 
         # convert to str to keep just the last two decimals
         amount_out = Decimal(str(amount_out))
@@ -116,6 +114,7 @@ should be equal to the end balance ({})".
             re.compile(r'^\d\d [a-z]{3}\s+\d\d [a-z]{3}.+[0-9,.]+\s+(Af|Bij)$')
         reader = self.fin.stdout if isinstance(self.fin, Popen) else self.fin
 
+        # breakpoint()
         for line in reader:
             line = line.strip()
             # to ease the parsing pain
@@ -137,10 +136,8 @@ should be equal to the end balance ({})".
                 balance = True
             elif balance:
                 balance = False
-                self.start_balance = ICSCardsNlParser.get_amount(row[0],
-                                                                 row[1])
-                self.end_balance = ICSCardsNlParser.get_amount(row[-2],
-                                                               row[-1])
+                self.start_balance = Parser.get_amount(row[0], row[1])
+                self.end_balance = Parser.get_amount(row[-2], row[-1])
 
             elif re.search(statement_expr, line):
                 assert(len(row) >= 5 and len(row) <= 8)
@@ -195,7 +192,7 @@ should be equal to the end balance ({})".
             memo = row[2]
 
         # Skip amount in foreign currency
-        amount = ICSCardsNlParser.get_amount(row[-2], row[-1])
+        amount = Parser.get_amount(row[-2], row[-1])
 
         self.amount_total += amount
         # Remove zero-value notifications

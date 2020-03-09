@@ -2,9 +2,8 @@
 import csv
 import sys
 
-from ofxstatement.plugin import Plugin
+from ofxstatement import plugin, parser
 from ofxstatement.exceptions import ParseError
-from ofxstatement.parser import CsvStatementParser
 from ofxstatement.statement import Statement, BankAccount
 from ofxstatement.statement import generate_transaction_id
 
@@ -13,28 +12,15 @@ from ofxstatement.statement import generate_transaction_id
 assert sys.version_info[0] >= 3, "At least Python 3 is required."
 
 
-class IngNlPlugin(Plugin):
-    """ING Netherlands plugin
+class Plugin(plugin.Plugin):
+    """ofxstatement.plugins.nl.ing plugin (ING Netherlands)
     """
-
     def get_parser(self, f):
         fin = open(f, "r", encoding="ISO-8859-1") if isinstance(f, str) else f
-        return IngNlParser(fin)
+        return Parser(fin)
 
 
-class IngNlStatementParser(CsvStatementParser):
-
-    def __init__(self, fin):
-        # Python 3 needed
-        super().__init__(fin)
-        # Use the BIC code for ING Netherlands
-        self.statement = Statement(bank_id="INGBNL2AXXX",
-                                   account_id=None,
-                                   currency="EUR",
-                                   account_type="CHECKING")
-
-
-class IngNlParser(IngNlStatementParser):
+class Parser(parser.CsvStatementParser):
     """
 
     These are the first two lines of an ING Netherlands CVS file:
@@ -116,6 +102,11 @@ class IngNlParser(IngNlStatementParser):
     def __init__(self, fin):
         # Python 3 needed
         super().__init__(fin)
+        # Use the BIC code for ING Netherlands
+        self.statement = Statement(bank_id="INGBNL2AXXX",
+                                   account_id=None,
+                                   currency="EUR",
+                                   account_type="CHECKING")
 
     def parse(self):
         """Main entry point for parsers

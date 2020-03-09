@@ -5,10 +5,10 @@ from unittest import TestCase
 from decimal import Decimal
 from datetime import datetime
 
-from ofxstatement.plugins.icscardsnl import ICSCardsNlPlugin
+from ofxstatement.plugins.nl.icscards import Plugin
 
 
-class IngNlParserTest(TestCase):
+class ParserTest(TestCase):
 
     def test_missing_column(self):
         # Lets define some sample text to parse and write it to file-like object
@@ -92,7 +92,7 @@ transactie   boeking                                                            
         f = io.StringIO(text)
 
         # Create and configure csv parser:
-        parser = ICSCardsNlPlugin(None, None).get_parser(f)
+        parser = Plugin(None, None).get_parser(f)
 
         # And parse csv:
         statement = parser.parse()
@@ -249,7 +249,7 @@ transactie   boeking                                                            
         f = io.StringIO(text)
 
         # Create and configure csv parser:
-        parser = ICSCardsNlPlugin(None, None).get_parser(f)
+        parser = Plugin(None, None).get_parser(f)
 
         # And parse csv:
         statement = parser.parse()
