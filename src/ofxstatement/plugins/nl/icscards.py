@@ -19,11 +19,12 @@ class Plugin(plugin.Plugin):
     """
 
     def get_parser(self, f):
+        # Create a process for pdftotext writing to this process
         pdftotext = ["pdftotext", "-layout", "-nodiag", "-nopgbrk", f, '-']
         fin = Popen(pdftotext,
                     stdout=PIPE,
                     stderr=STDOUT,
-                    universal_newlines=True)\
+                    universal_newlines=True).stdout \
             if isinstance(f, str) else f
         return Parser(fin)
 
@@ -112,10 +113,9 @@ should be equal to the end balance ({})".
 
         statement_expr = \
             re.compile(r'^\d\d [a-z]{3}\s+\d\d [a-z]{3}.+[0-9,.]+\s+(Af|Bij)$')
-        reader = self.fin.stdout if isinstance(self.fin, Popen) else self.fin
 
         # breakpoint()
-        for line in reader:
+        for line in self.fin:
             line = line.strip()
             # to ease the parsing pain
             row = convert_str_to_list(line)

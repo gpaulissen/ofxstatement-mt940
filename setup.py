@@ -98,14 +98,14 @@ if __name__ == '__main__':
         long_description=readme + changes,
         long_description_content_type='text/markdown',
         include_package_data=True,
-        install_requires=['ofxstatement'],
-        tests_require=["pytest"],
+        install_requires=['ofxstatement', 'pdftotext'],
+        tests_require=tests_require,
         setup_requires=[
             'setuptools>=39.1.0',
         ],
         zip_safe=True,
         cmdclass={'test': PyTest},
-        extras_require={'test': ["pytest"]},
+        extras_require={'test': tests_require},
         classifiers=[
             'Development Status :: 6 - Mature',
             'Programming Language :: Python :: 3',
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         ],
         entry_points={
             'ofxstatement':
-            ['nl-ing = ofxstatement.plugins.ing:Plugin',
-             'nl-icscards = ofxstatement.plugins.icscards:Plugin']
+            ['nl-ing = ofxstatement.plugins.nl.ing:Plugin',
+             'nl-icscards = ofxstatement.plugins.nl.icscards:Plugin']
         },
     )
