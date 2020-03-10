@@ -5,7 +5,7 @@ import sys
 from ofxstatement import plugin, parser
 from ofxstatement.exceptions import ParseError
 from ofxstatement.statement import Statement, BankAccount
-from ofxstatement.statement import generate_transaction_id
+from ofxstatement.statement import generate_transaction_id, recalculate_balance
 
 
 # Need Python 3 for super() syntax
@@ -118,10 +118,12 @@ class Parser(parser.CsvStatementParser):
         # Python 3 needed
         stmt = super().parse()
 
+        recalculate_balance(stmt)
         # GJP 2020-03-03
         # No need to (re)calculate the balance since there is no history.
+        # But keep the dates.
+        stmt.start_balance = stmt.end_balance = None
 
-        # recalculate_balance(stmt)
         return stmt
 
     def split_records(self):

@@ -11,7 +11,7 @@ from ofxstatement.plugins.nl.icscards import Plugin
 class ParserTest(TestCase):
 
     def test_missing_column(self):
-        # Lets define some sample text to parse and write it to file-like object
+        # Use the output of pdftotext -layout to define sample text to parse and write it to file-like object
         text = dedent("""
 International Card Services BV                                 www.icscards.nl
 Postbus 23225                                                  Bankrek. NL99ABNA9999999999
@@ -109,16 +109,19 @@ transactie   boeking                                                            
         self.assertEqual(statement.end_date, datetime.strptime("2019-09-17", parser.date_format).date())
 
         self.assertEqual(len(statement.lines), 25)
+        self.assertEqual(statement.lines[0].amount, Decimal('1311.73'))
         self.assertEqual(statement.lines[1].date, datetime.strptime("2019-08-21", parser.date_format).date())
+        self.assertEqual(statement.lines[1].amount, Decimal('-7.99'))
         self.assertEqual(statement.lines[12].payee, "HOTEL MERCURE")
         self.assertEqual(statement.lines[12].memo, "MONTIGNY LE B (FR)")
         self.assertEqual(statement.lines[13].payee, "NEWREST WAGONS LITS FRANC")
         self.assertEqual(statement.lines[13].memo, "PARIS (FR)")
         self.assertEqual(statement.lines[14].payee, "SNCF")
         self.assertEqual(statement.lines[14].memo, "PARIS 8 (FR)")
+        self.assertEqual(statement.lines[24].amount, Decimal('-6.15'))
 
     def test_big(self):
-        # Lets define some sample text to parse and write it to file-like object
+        # Use the output of pdftotext -layout to define sample text to parse and write it to file-like object
         text = dedent("""
 International Card Services BV                                 www.icscards.nl
 Postbus 23225                                                  Bankrek. NL99ABNA9999999999
