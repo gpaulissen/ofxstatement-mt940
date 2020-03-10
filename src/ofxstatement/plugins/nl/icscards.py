@@ -4,7 +4,7 @@ import locale
 import re
 from decimal import Decimal
 from datetime import datetime
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import check_call, CalledProcessError, Popen, PIPE, STDOUT
 
 from ofxstatement import plugin, parser
 from ofxstatement.statement import Statement, StatementLine
@@ -18,15 +18,27 @@ class Plugin(plugin.Plugin):
     """ICSCards, The Netherlands, PDF (https://icscards.nl/)
     """
 
-    def get_parser(self, f):
-        # Create a process for pdftotext writing to this process
-        pdftotext = ["pdftotext", "-layout", "-nodiag", "-nopgbrk", f, '-']
-        fin = Popen(pdftotext,
-                    stdout=PIPE,
-                    stderr=STDOUT,
-                    universal_newlines=True).stdout \
-            if isinstance(f, str) else f
-        return Parser(fin)
+    def get_file_object_parser(self, fh):
+        return Parser(fh)
+
+    def get_parser(self, filename):
+        pdftotext = ["pdftotext", "-layout", "-nodiag", "-nopgbrk", filename]
+        fh = None
+
+        # Is it a PDF or an already converted file?
+        try:
+            check_call(pdftotext)
+            # No exception: apparently it is a PDF.
+            # Create a process for pdftotext writing to this process.
+            pdftotext.append('-')
+            fh = Popen(pdftotext,
+                       stdout=PIPE,
+                       stderr=STDOUT,
+                       universal_newlines=True).stdout
+        except CalledProcessError:
+            fh = open(filename, "r")
+
+        return self.get_file_object_parser(fh)
 
 
 class Parser(parser.StatementParser):
