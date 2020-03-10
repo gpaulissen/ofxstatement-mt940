@@ -2,9 +2,10 @@
 import sys
 import locale
 import re
+import io
 from decimal import Decimal
 from datetime import datetime
-from subprocess import check_call, CalledProcessError, Popen, PIPE, STDOUT
+from subprocess import check_output, CalledProcessError
 
 from ofxstatement import plugin, parser
 from ofxstatement.statement import Statement, StatementLine
@@ -22,19 +23,13 @@ class Plugin(plugin.Plugin):
         return Parser(fh)
 
     def get_parser(self, filename):
-        pdftotext = ["pdftotext", "-layout", "-nodiag", "-nopgbrk", filename]
+        pdftotext = ["pdftotext", "-layout", filename, '-']
         fh = None
 
         # Is it a PDF or an already converted file?
         try:
-            check_call(pdftotext)
+            fh = io.StringIO(check_output(pdftotext).decode())
             # No exception: apparently it is a PDF.
-            # Create a process for pdftotext writing to this process.
-            pdftotext.append('-')
-            fh = Popen(pdftotext,
-                       stdout=PIPE,
-                       stderr=STDOUT,
-                       universal_newlines=True).stdout
         except CalledProcessError:
             fh = open(filename, "r")
 
