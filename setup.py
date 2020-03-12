@@ -91,14 +91,14 @@ if __name__ == '__main__':
         description=about['__description__'],
         url=about['__url__'],
         license=about['__license__'],
-        keywords=["ofx", "banking", "statement", "ing", "icscards"],
+        keywords=["ofx", "banking", "statement", "mt940"],
         packages=find_packages('src'),
         package_dir={'': 'src'},
         namespace_packages=["ofxstatement", "ofxstatement.plugins"],
         long_description=readme + changes,
         long_description_content_type='text/markdown',
         include_package_data=True,
-        install_requires=['ofxstatement', 'pdftotext'],
+        install_requires=['ofxstatement', 'mt-940'],
         tests_require=tests_require,
         setup_requires=[
             'setuptools>=39.1.0',
@@ -118,7 +118,6 @@ if __name__ == '__main__':
         ],
         entry_points={
             'ofxstatement':
-            ['nl-ing = ofxstatement.plugins.nl.ing:Plugin',
-             'nl-icscards = ofxstatement.plugins.nl.icscards:Plugin']
+            ['mt940 = ofxstatement.plugins.mt940:Plugin']
         },
     )
