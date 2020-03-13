@@ -22,8 +22,8 @@ class ParserTest(TestCase):
         self.assertEqual(statement.bank_id, "ASNBNL21XXX")
         self.assertEqual(statement.account_id, "NL81ASNB9999999999")
         self.assertEqual(statement.account_type, "CHECKING")
-        self.assertEqual(statement.start_balance, Decimal('404.81'))
-        self.assertEqual(statement.start_date, datetime.strptime("2020-01-31", parser.date_format).date())
+        self.assertEqual(statement.start_balance, Decimal('-555.89'))
+        self.assertEqual(statement.start_date, datetime.strptime("2020-01-01", parser.date_format).date())
         self.assertEqual(statement.end_balance, Decimal('501.23'))
         self.assertEqual(statement.end_date, datetime.strptime("2020-02-01", parser.date_format).date())
         self.assertEqual(len(statement.lines), 9)
@@ -66,7 +66,7 @@ class ParserTest(TestCase):
         # duplicate
         self.assertEqual(statement.lines[7].amount, Decimal('1000.18'))
         self.assertEqual(statement.lines[7].date, datetime.strptime("2020-01-31", parser.date_format).date())
-        self.assertEqual(statement.lines[7].memo, 'INTERNE OVERBOEKING VIA MOBIEL #8')
+        self.assertEqual(statement.lines[7].memo, 'INTERNE OVERBOEKING VIA MOBIEL #2')
         self.assertEqual(statement.lines[7].payee, 'paulissen g j l m (NL56ASNB9999999999)')
 
         self.assertEqual(statement.lines[8].amount, Decimal('-903.76'))

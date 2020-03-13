@@ -2,15 +2,20 @@
 import sys
 from decimal import Decimal
 import datetime
+import logging
+from pprint import pformat
 
 import mt940
 from mt940.tags import Statement, StatementASNB
 
 from ofxstatement import plugin, parser
 from ofxstatement.statement import StatementLine, BankAccount
+from ofxstatement.statement import generate_unique_transaction_id
 
 # Need Python 3 for super() syntax
 assert sys.version_info[0] >= 3, "At least Python 3 is required."
+
+logger = logging.getLogger(__name__)
 
 ASNB_BIC = 'ASNBNL21XXX'
 
@@ -21,7 +26,7 @@ class Plugin(plugin.Plugin):
 
     def get_file_object_parser(self, fh):
         bank_id = ASNB_BIC if self.settings is None\
-            else self.settings['bank_id']
+            else self.settings.get('bank_id', ASNB_BIC)
         parser = Parser(fh, bank_id)
         return parser
 
@@ -34,6 +39,7 @@ class Parser(parser.StatementParser):
         super().__init__()
         self.fin = fin
         self.bank_id = bank_id
+        self.unique_id_set = set()
 
     def parse(self):
         """Main entry point for parsers
@@ -44,18 +50,21 @@ class Parser(parser.StatementParser):
 
         stmt = super().parse()
 
+        logger.debug('trs.data:\n' + pformat(self.trs.data, indent=4, width=1))
+
         stmt.account_id = self.trs.data['account_identification']
 
-        stmt.currency = self.trs.data['final_opening_balance'].amount.currency
-        # Use str() to prevent rounding errors
-        stmt.start_balance = \
-            Decimal(str(self.trs.data['final_opening_balance'].amount.amount))
-        stmt.start_date = self.trs.data['final_opening_balance'].date
-
+        # There is no information about the initial opening balance just the
+        # final opening balance (on the same day as the final closing balance)
+        stmt.currency = self.trs.data['final_closing_balance'].amount.currency
         stmt.end_balance = \
             Decimal(str(self.trs.data['final_closing_balance'].amount.amount))
         stmt.end_date = self.trs.data['final_closing_balance'].date
-        stmt.end_date += datetime.timedelta(days=1)
+        stmt.end_date += datetime.timedelta(days=1)  # exclusive for OFX
+
+        stmt.start_date = min(sl.date for sl in stmt.lines)
+        total_amount = sum(sl.amount for sl in stmt.lines)
+        stmt.start_balance = stmt.end_balance - total_amount
 
         stmt.bank_id = self.bank_id
 
@@ -78,6 +87,8 @@ class Parser(parser.StatementParser):
     def parse_record(self, transaction):
         """Parse given transaction line and return StatementLine object
         """
+        logger.debug('transaction:\n' +
+                     pformat(transaction, indent=4, width=1))
         stmt_line = None
 
         # Use str() to prevent rounding errors
@@ -101,12 +112,12 @@ class Parser(parser.StatementParser):
             stmt_line = StatementLine(date=date,
                                       memo=memo,
                                       amount=amount)
-            try:
-                stmt_line.generate_transaction_id()
-            except:
-                # include record number so the memo gets unique
-                stmt_line.memo = stmt_line.memo + ' #' + str(self.cur_record)
-                stmt_line.generate_transaction_id()
+            stmt_line.id, counter = \
+                generate_unique_transaction_id(stmt_line, self.unique_id_set)
+            if counter != 0:
+                # include counter so the memo gets unique
+                stmt_line.memo = stmt_line.memo + ' #' + str(counter + 1)
+
             stmt_line.payee = payee
             if bank_account_to:
                 stmt_line.bank_account_to = \
