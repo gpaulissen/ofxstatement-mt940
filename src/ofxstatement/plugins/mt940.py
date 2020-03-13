@@ -4,6 +4,7 @@ from decimal import Decimal
 import datetime
 import logging
 from pprint import pformat
+import re
 
 import mt940
 from mt940.tags import Statement, StatementASNB
@@ -112,9 +113,11 @@ class Parser(parser.StatementParser):
             stmt_line = StatementLine(date=date,
                                       memo=memo,
                                       amount=amount)
-            stmt_line.id, counter = \
+            stmt_line.id = \
                 generate_unique_transaction_id(stmt_line, self.unique_id_set)
-            if counter != 0:
+            m = re.search(r'-(\d+)$', stmt_line.id)
+            if m:
+                counter = int(m.group(1))
                 # include counter so the memo gets unique
                 stmt_line.memo = stmt_line.memo + ' #' + str(counter + 1)
 
