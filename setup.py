@@ -98,7 +98,7 @@ if __name__ == '__main__':
         long_description=readme + changes,
         long_description_content_type='text/markdown',
         include_package_data=True,
-        install_requires=['ofxstatement', 'mt-940'],
+        install_requires=['ofxstatement>0.6.4', 'mt-940>=4.19.0'],
         tests_require=tests_require,
         setup_requires=[
             'setuptools>=39.1.0',

@@ -4,22 +4,22 @@ from unittest import TestCase
 from decimal import Decimal
 from datetime import datetime
 
-from ofxstatement.plugins.mt940 import Plugin
+from ofxstatement.plugins.mt940 import Plugin, get_bank_id
 
 
 class ParserTest(TestCase):
 
-    def test_ok(self):
+    def test_ASNB(self):
         # Create and configure parser:
         here = os.path.dirname(__file__)
-        text_filename = os.path.join(here, 'samples', 'mt940.txt')
+        text_filename = os.path.join(here, 'samples', 'mt940_ASNB.txt')
         parser = Plugin(None, None).get_parser(text_filename)
 
         # And parse:
         statement = parser.parse()
 
         self.assertEqual(statement.currency, 'EUR')
-        self.assertEqual(statement.bank_id, "ASNBNL21XXX")
+        self.assertEqual(statement.bank_id, get_bank_id('ASNB'))
         self.assertEqual(statement.account_id, "NL81ASNB9999999999")
         self.assertEqual(statement.account_type, "CHECKING")
         self.assertEqual(statement.start_balance, Decimal('-555.89'))
@@ -74,3 +74,40 @@ class ParserTest(TestCase):
         self.assertEqual(statement.lines[8].memo, '000000000000000000000000000000000 0000000000000000 Betaling aan ICS 99999999999 ICS Referentie: 2020-01-31 21:27 000000000000000')
         self.assertEqual(statement.lines[8].payee, 'international card services (NL08ABNA9999999999)')
 
+    def test_mBank(self):
+        # Create and configure parser:
+        here = os.path.dirname(__file__)
+        text_filename = os.path.join(here, 'samples', 'mt940_mBank.txt')
+        parser = Plugin(None, {'bank_code': 'MBANK'}).get_parser(text_filename)
+
+        # And parse:
+        statement = parser.parse()
+
+        self.assertEqual(statement.currency, 'PLN')
+        self.assertEqual(statement.bank_id, get_bank_id('MBANK'))
+        self.assertEqual(statement.account_id, "PL29114010810000267002001002")
+        self.assertEqual(statement.account_type, "CHECKING")
+        self.assertEqual(statement.start_balance, Decimal('0.40'))
+        self.assertEqual(statement.start_date, datetime.strptime("2017-01-19", parser.date_format).date())
+        self.assertEqual(statement.end_balance, Decimal('0.43'))
+        self.assertEqual(statement.end_date, datetime.strptime("2017-01-20", parser.date_format).date())
+        self.assertEqual(len(statement.lines), 3)
+
+    def test_other(self):
+        here = os.path.dirname(__file__)
+        nr_lines = {'abnamro': 10,
+                    'ing': 7,
+                    'knab': 3,
+                    'rabobank': 5,
+                    'sns': 2,
+                    'triodos': 2}
+        for bank in nr_lines:
+            text_filename = os.path.join(here, 'samples', bank + '.sta')
+            settings = {'bank_code': bank,
+                        'bank_id': 'my_' + get_bank_id(bank)}
+            parser = Plugin(None, settings).get_parser(text_filename)
+
+            # And parse:
+            statement = parser.parse()
+            self.assertEqual(statement.bank_id, settings['bank_id'])
+            self.assertEqual(len(statement.lines), nr_lines[bank], bank)

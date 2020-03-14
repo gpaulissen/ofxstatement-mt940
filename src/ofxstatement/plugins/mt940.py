@@ -7,7 +7,7 @@ from pprint import pformat
 import re
 
 import mt940
-from mt940.tags import Statement, StatementASNB
+from mt940.tags import StatementASNB
 
 from ofxstatement import plugin, parser
 from ofxstatement.statement import StatementLine, BankAccount
@@ -18,7 +18,17 @@ assert sys.version_info[0] >= 3, "At least Python 3 is required."
 
 logger = logging.getLogger(__name__)
 
-ASNB_BIC = 'ASNBNL21XXX'
+
+def get_bank_id(bank_code: str):
+    bic_codes = {'ASNB': 'ASNBNL21',
+                 'MBANK': 'BREXPLPW',
+                 'ABNAMRO': 'ABNANL2A',
+                 'ING': 'INGBNL2A',
+                 'KNAB': 'KNABNL2H',
+                 'RABO': 'RABONL2U',
+                 'SNS': 'SNSBNL2A',
+                 'TRIODOS': 'TRIONL2U'}
+    return bic_codes.get(bank_code.upper(), bank_code)
 
 
 class Plugin(plugin.Plugin):
@@ -26,9 +36,20 @@ class Plugin(plugin.Plugin):
     """
 
     def get_file_object_parser(self, fh):
-        bank_id = ASNB_BIC if self.settings is None\
-            else self.settings.get('bank_id', ASNB_BIC)
-        parser = Parser(fh, bank_id)
+        bank_code = 'ASNB'
+        bank_id = None
+        if self.settings is None:
+            pass
+        else:
+            if 'bank_code' in self.settings:
+                bank_code = self.settings.get('bank_code')
+            if 'bank_id' in self.settings:
+                bank_id = self.settings.get('bank_id')
+
+        if bank_id is None:
+            bank_id = get_bank_id(bank_code)
+
+        parser = Parser(fh, bank_code, bank_id)
         return parser
 
     def get_parser(self, filename):
@@ -36,9 +57,10 @@ class Plugin(plugin.Plugin):
 
 
 class Parser(parser.StatementParser):
-    def __init__(self, fin, bank_id):
+    def __init__(self, fin, bank_code, bank_id):
         super().__init__()
         self.fin = fin
+        self.bank_code = bank_code.upper()
         self.bank_id = bank_id
         self.unique_id_set = set()
 
@@ -51,7 +73,7 @@ class Parser(parser.StatementParser):
 
         stmt = super().parse()
 
-        logger.debug('trs.data:\n' + pformat(self.trs.data, indent=4, width=1))
+        logger.debug('trs.data:\n' + pformat(self.trs.data, indent=4))
 
         stmt.account_id = self.trs.data['account_identification']
 
@@ -75,12 +97,25 @@ class Parser(parser.StatementParser):
         """Return iterable object consisting of a line per transaction
         """
         data = self.fin.read()
-        # Some complex code to get 100 % coverage
-        tag_parsers = {ASNB_BIC: StatementASNB()}
-        tag_parser = tag_parsers.get(self.bank_id, Statement())
-        self.trs = mt940.models.Transactions(tags={
-            tag_parser.id: tag_parser
-        })
+
+        if self.bank_code == 'ASNB' or self.bank_id == get_bank_id('ASNB'):
+            # mt940/tree/develop/mt940_tests/test_tags.py
+            tag_parser = StatementASNB()
+            self.trs = mt940.models.Transactions(tags={
+                tag_parser.id: tag_parser
+            })
+        elif self.bank_code == 'MBANK' or self.bank_id == get_bank_id('MBANK'):
+            # mt940/tree/develop/mt940_tests/test_processors.py
+            self.trs = mt940.models.Transactions(processors=dict(
+                post_transaction_details=[
+                    mt940.processors.mBank_set_transaction_code,
+                    mt940.processors.mBank_set_iph_id,
+                    mt940.processors.mBank_set_tnr,
+                ],
+            ))
+        else:
+            self.trs = mt940.models.Transactions()
+
         self.trs.parse(data)
         for transaction in self.trs:
             yield transaction
@@ -88,8 +123,7 @@ class Parser(parser.StatementParser):
     def parse_record(self, transaction):
         """Parse given transaction line and return StatementLine object
         """
-        logger.debug('transaction:\n' +
-                     pformat(transaction, indent=4, width=1))
+        logger.debug('transaction:\n' + pformat(transaction, indent=4))
         stmt_line = None
 
         # Use str() to prevent rounding errors
