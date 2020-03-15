@@ -1,0 +1,4 @@
+pytest
+coverage
+pep8
+flake8
