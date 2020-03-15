@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_bank_id(bank_code: str):
-    bic_codes = {'ASNB': 'ASNBNL21',
+    bic_codes = {'ASN': 'ASNBNL21',
                  'MBANK': 'BREXPLPW',
                  'ABNAMRO': 'ABNANL2A',
                  'ING': 'INGBNL2A',
@@ -28,7 +28,7 @@ def get_bank_id(bank_code: str):
                  'RABO': 'RABONL2U',
                  'SNS': 'SNSBNL2A',
                  'TRIODOS': 'TRIONL2U'}
-    return bic_codes.get(bank_code.upper(), bank_code)
+    return bic_codes[bank_code.upper()]
 
 
 class Plugin(plugin.Plugin):
@@ -36,7 +36,7 @@ class Plugin(plugin.Plugin):
     """
 
     def get_file_object_parser(self, fh):
-        bank_code = 'ASNB'
+        bank_code = 'ASN'
         bank_id = None
         if self.settings is None:
             pass
@@ -98,7 +98,7 @@ class Parser(parser.StatementParser):
         """
         data = self.fin.read()
 
-        if self.bank_code == 'ASNB' or self.bank_id == get_bank_id('ASNB'):
+        if self.bank_code == 'ASN' or self.bank_id == get_bank_id('ASN'):
             # mt940/tree/develop/mt940_tests/test_tags.py
             tag_parser = StatementASNB()
             self.trs = mt940.models.Transactions(tags={

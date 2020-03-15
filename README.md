@@ -14,9 +14,26 @@ project this plugin would not have been possible.
 
 ## Installation
 
+### Using pip
+
+```
+$ pip install ofxstatement-mt940
+```
+
 ### Development version from source
+
 ```
 $ git clone https://github.com/gpaulissen/ofxstatement-mt940.git
+$ pip install -e .
+```
+
+### Troubleshooting
+
+This package depends on ofxstatement with a version at least 0.6.5. This
+version may not yet be available in PyPI so install that from source like
+this:
+```
+$ git clone https://github.com/kedder/ofxstatement.git
 $ pip install -e .
 ```
 
@@ -30,7 +47,26 @@ $ py.test
 
 ## Usage
 
-### Basic usage
+### Show installed plugins
+
+This shows the all installed plugins, not only those from this package:
+
+```
+$ ofxstatement list-plugins
+```
+
+You should see at least:
+
+```
+The following plugins are available:
+
+  ...
+  mt940            MT940, text
+  ...
+
+```
+
+### Convert
 
 This will convert a mt940 file to an OFX file.
 
@@ -71,23 +107,28 @@ bank_id = myasnbbankid
 These are the predefined bank codes (case insensitive) and their corresponding
 bank id's (tag BANKID) in the OFX file:
 
-
 | Bank code | Bank id  | Comment |
 | :-------- | :------  | :------ |
-| ASNB			| ASNBNL21 | Special processing instructions for MT940 tag 61, see [test_tags.py](https://github.com/WoLpH/mt940/blob/develop/mt940_tests/test_tags.py) |
-| MBANK			| BREXPLPW | Special post processing instructions, see [test_processors.py](https://github.com/WoLpH/mt940/blob/develop/mt940_tests/test_processors.py). |
-| ABNAMRO		| ABNANL2A |
-| ING				| INGBNL2A |
-| KNAB			| KNABNL2H |
-| RABO			| RABONL2U |
-| SNS				| SNSBNL2A |
-| TRIODOS		| TRIONL2U |
+| ASN 			| ASNBNL21 | Dutch bank with special processing instructions for MT940 tag 61, see [test_tags.py](https://github.com/WoLpH/mt940/blob/develop/mt940_tests/test_tags.py) |
+| ABNAMRO		| ABNANL2A | Dutch bank
+| ING				| INGBNL2A | Dutch bank
+| KNAB			| KNABNL2H | Dutch bank
+| RABO			| RABONL2U | Dutch bank
+| SNS				| SNSBNL2A | Dutch bank
+| TRIODOS		| TRIONL2U | Dutch bank
+| MBANK			| BREXPLPW | Polish bank with special post processing instructions, see [test_processors.py](https://github.com/WoLpH/mt940/blob/develop/mt940_tests/test_processors.py). |
 
+\
 Please note that this list is not exhaustive and you can process a MT940 from
 any bank.  Just define a bank code from this list above or else your own bank
 id in the ofxstatement configuration.
 
-### Advanced usage (using the configuration)
+From the [MT940](https://github.com/WoLpH/mt940) project I have copied the
+special processing instructions for the banks tested there, thus ASN and
+MBANK. Other banks do not seem to need special instructions to parse their
+MT940 file.
+
+### Advanced conversions (using the configuration)
 
 This will generate an OFX to standard output with "myingbankid" for OFX tag BANKID:
 

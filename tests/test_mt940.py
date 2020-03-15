@@ -3,23 +3,24 @@ import os
 from unittest import TestCase
 from decimal import Decimal
 from datetime import datetime
+import pytest
 
 from ofxstatement.plugins.mt940 import Plugin, get_bank_id
 
 
 class ParserTest(TestCase):
 
-    def test_ASNB(self):
+    def test_ASN(self):
         # Create and configure parser:
         here = os.path.dirname(__file__)
-        text_filename = os.path.join(here, 'samples', 'mt940_ASNB.txt')
+        text_filename = os.path.join(here, 'samples', 'mt940_ASN.txt')
         parser = Plugin(None, None).get_parser(text_filename)
 
         # And parse:
         statement = parser.parse()
 
         self.assertEqual(statement.currency, 'EUR')
-        self.assertEqual(statement.bank_id, get_bank_id('ASNB'))
+        self.assertEqual(statement.bank_id, get_bank_id('ASN'))
         self.assertEqual(statement.account_id, "NL81ASNB9999999999")
         self.assertEqual(statement.account_type, "CHECKING")
         self.assertEqual(statement.start_balance, Decimal('-555.89'))
@@ -98,7 +99,7 @@ class ParserTest(TestCase):
         nr_lines = {'abnamro': 10,
                     'ing': 7,
                     'knab': 3,
-                    'rabobank': 5,
+                    'rabo': 5,
                     'sns': 2,
                     'triodos': 2}
         for bank in nr_lines:
@@ -111,3 +112,27 @@ class ParserTest(TestCase):
             statement = parser.parse()
             self.assertEqual(statement.bank_id, settings['bank_id'])
             self.assertEqual(len(statement.lines), nr_lines[bank], bank)
+
+    @pytest.mark.xfail(raises=KeyError)
+    def test_unknown_bank_code(self):
+        """'Parser' does not have a bank id for this bank code.
+        """
+        # Create and configure parser:
+        here = os.path.dirname(__file__)
+        text_filename = os.path.join(here, 'samples', 'mt940_ASN.txt')
+        parser = Plugin(None, {'bank_code': 'XYZ'}).get_parser(text_filename)
+
+        # And parse:
+        parser.parse()
+
+    def test_bank_code_unknown_bank_id_known(self):
+        """'Parser' object has no attribute 'bank_id'
+        """
+        # Create and configure parser:
+        here = os.path.dirname(__file__)
+        text_filename = os.path.join(here, 'samples', 'mt940_ASN.txt')
+        parser = Plugin(None, {'bank_code': 'XYZ', 'bank_id': get_bank_id('ASN')}).get_parser(text_filename)
+
+        # And parse:
+        statement = parser.parse()
+        self.assertEqual(len(statement.lines), 9)
