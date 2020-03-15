@@ -1,4 +1,5 @@
 pytest
-coverage
-pep8
+pytest-cover
+pytest-flakes
+pytest-pep8
 flake8
