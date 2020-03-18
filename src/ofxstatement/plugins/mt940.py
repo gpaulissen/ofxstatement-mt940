@@ -13,6 +13,8 @@ from ofxstatement import plugin, parser
 from ofxstatement.statement import StatementLine, BankAccount
 from ofxstatement.statement import generate_unique_transaction_id
 
+from ofxstatement.plugins.nl.statement import Statement
+
 # Need Python 3 for super() syntax
 assert sys.version_info[0] >= 3, "At least Python 3 is required."
 
@@ -58,10 +60,10 @@ class Plugin(plugin.Plugin):
 
 class Parser(parser.StatementParser):
     def __init__(self, fin, bank_code, bank_id):
-        super().__init__()
+        super().__init__(bank_id=bank_id)
+        self.statement = Statement()  # My Statement()
         self.fin = fin
         self.bank_code = bank_code.upper()
-        self.bank_id = bank_id
         self.unique_id_set = set()
 
     def parse(self):
@@ -89,8 +91,6 @@ class Parser(parser.StatementParser):
         total_amount = sum(sl.amount for sl in stmt.lines)
         stmt.start_balance = stmt.end_balance - total_amount
 
-        stmt.bank_id = self.bank_id
-
         return stmt
 
     def split_records(self):
@@ -98,13 +98,13 @@ class Parser(parser.StatementParser):
         """
         data = self.fin.read()
 
-        if self.bank_code == 'ASN' or self.bank_id == get_bank_id('ASN'):
+        if self.bank_code == 'ASN' or self.statement.bank_id == get_bank_id('ASN'):
             # mt940/tree/develop/mt940_tests/test_tags.py
             tag_parser = StatementASNB()
             self.trs = mt940.models.Transactions(tags={
                 tag_parser.id: tag_parser
             })
-        elif self.bank_code == 'MBANK' or self.bank_id == get_bank_id('MBANK'):
+        elif self.bank_code == 'MBANK' or self.statement.bank_id == get_bank_id('MBANK'):
             # mt940/tree/develop/mt940_tests/test_processors.py
             self.trs = mt940.models.Transactions(processors=dict(
                 post_transaction_details=[
