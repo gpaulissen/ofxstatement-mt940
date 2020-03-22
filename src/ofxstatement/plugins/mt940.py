@@ -60,8 +60,8 @@ class Plugin(plugin.Plugin):
 
 class Parser(parser.StatementParser):
     def __init__(self, fin, bank_code, bank_id):
-        super().__init__(bank_id=bank_id)
-        self.statement = Statement()  # My Statement()
+        super().__init__()
+        self.statement = Statement(bank_id=bank_id)  # My Statement()
         self.fin = fin
         self.bank_code = bank_code.upper()
         self.unique_id_set = set()
