@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	- The Readme mentions test_requirements.txt for installing test modules.
 	- More checks concerning the content (dates with start and end
 	date exclusive) that may result in a ValidationError exception.
-	- Added Makefile for keeping the important operations together.
+	- Added GNU Makefile for keeping the important operations together.
+	- MANIFEST.in now includes the Makefile and CHANGELOG.md.
 
 ### Changed
 
@@ -25,8 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	https://github.com/kedder/ofxstatement.git.
 	- The __about__.py file outputs the version number and that is
 	used in the Makefile.
-	- The Makefile depends now on GNU make for tagging a release.
-	- MANIFEST.in now includes the Makefile and CHANGELOG.md.
 	- Code refactoring.
 	- Readme enhanced.
 
