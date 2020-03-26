@@ -52,36 +52,8 @@ if __name__ == '__main__':
     with open('README.md') as f:
         readme = f.read()
 
-    try:
-        import git
-        try:
-            repo = git.Repo('.')
-        except git.exc.InvalidGitRepositoryError:
-            raise ImportError()
-
-        if repo.bare:
-            raise ImportError()
-
-        tags = [tag.tag for tag in repo.tags if tag.tag]
-        tags = sorted(tags, key=lambda tag: tag.tagged_date, reverse=True)
-        changes = [
-            '',
-            '',
-            'Changelog',
-            '---------',
-        ]
-
-        for tag in tags:
-            version = tag.tag
-            if version[0] != 'v':
-                version = 'v' + version
-
-            message = tag.message.split('\n')[0]
-            changes.append(' * **%s** %s' % (version, message))
-
-        changes = '\n'.join(changes)
-    except ImportError:
-        changes = ''
+    with open('CHANGELOG.md') as f:
+        changes = f.read()
 
     setup(
         name=about['__package_name__'],

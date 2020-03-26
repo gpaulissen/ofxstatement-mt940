@@ -1,1 +1,3 @@
 include test_requirements.txt
+include Makefile
+include CHANGELOG.md

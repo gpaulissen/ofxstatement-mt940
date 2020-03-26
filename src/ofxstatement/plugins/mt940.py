@@ -97,14 +97,16 @@ class Parser(parser.StatementParser):
         """Return iterable object consisting of a line per transaction
         """
         data = self.fin.read()
+        # To solve PEP8 E127 continuation line over-indented for visual indent
+        bank_id = self.statement.bank_id
 
-        if self.bank_code == 'ASN' or self.statement.bank_id == get_bank_id('ASN'):
+        if self.bank_code == 'ASN' or bank_id == get_bank_id('ASN'):
             # mt940/tree/develop/mt940_tests/test_tags.py
             tag_parser = StatementASNB()
             self.trs = mt940.models.Transactions(tags={
                 tag_parser.id: tag_parser
             })
-        elif self.bank_code == 'MBANK' or self.statement.bank_id == get_bank_id('MBANK'):
+        elif self.bank_code == 'MBANK' or bank_id == get_bank_id('MBANK'):
             # mt940/tree/develop/mt940_tests/test_processors.py
             self.trs = mt940.models.Transactions(processors=dict(
                 post_transaction_details=[
