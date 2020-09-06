@@ -138,26 +138,38 @@ class ParserTest(TestCase):
         statement = parser.parse()
         self.assertEqual(len(statement.lines), 9)
 
-    def test_ignore_check_end_date_true(self):
+    def test_end_date_derived_from_statements_true(self):
         """'Parser' does ignore end_date check
         """
         # Create and configure parser:
         here = os.path.dirname(__file__)
         text_filename = os.path.join(here, 'samples', 'mt940_ASN_end_date_wrong.txt')
-        parser = Plugin(None, {'bank_code': 'XYZ', 'bank_id': get_bank_id('ASN'), 'ignore_check_end_date': 'true'}).get_parser(text_filename)
+        parser = Plugin(None, {'bank_code': 'XYZ', 'bank_id': get_bank_id('ASN'), 'end_date_derived_from_statements': 'true'}).get_parser(text_filename)
 
         # And parse:
         statement = parser.parse()
         self.assertEqual(len(statement.lines), 1)
 
     @pytest.mark.xfail(raises=ValidationError)
-    def test_ignore_check_end_date_false(self):
+    def test_end_date_derived_from_statements_false(self):
         """'Parser' does not ignore end_date check
         """
         # Create and configure parser:
         here = os.path.dirname(__file__)
         text_filename = os.path.join(here, 'samples', 'mt940_ASN_end_date_wrong.txt')
-        parser = Plugin(None, {'bank_code': 'XYZ', 'bank_id': get_bank_id('ASN'), 'ignore_check_end_date': 'false'}).get_parser(text_filename)
+        parser = Plugin(None, {'bank_code': 'XYZ', 'bank_id': get_bank_id('ASN'), 'end_date_derived_from_statements': 'false'}).get_parser(text_filename)
+
+        # And parse:
+        parser.parse().assert_valid()
+
+    @pytest.mark.xfail(raises=ValidationError)
+    def test_end_date_derived_from_statements_not_set(self):
+        """'Parser' does not ignore end_date check
+        """
+        # Create and configure parser:
+        here = os.path.dirname(__file__)
+        text_filename = os.path.join(here, 'samples', 'mt940_ASN_end_date_wrong.txt')
+        parser = Plugin(None, {'bank_code': 'XYZ', 'bank_id': get_bank_id('ASN')}).get_parser(text_filename)
 
         # And parse:
         parser.parse().assert_valid()

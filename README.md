@@ -142,14 +142,20 @@ In certain situations you may get this error from your bank document download:
 The statement end date (2020-09-02) should be greater than the largest statement line date (2020-09-03)
 ```
 
-You can ignore this by setting ignore_check_end_date to True:
+In that case the MT940 Closing Balance(tag 62) or Finale Closing Balance (tag
+62F) has a date before the latest Statement Line (tag 61) date.  You can set
+the statement end date to the highest of the (Final) Closing Balance date and
+latest Statement Line (tag 61) date by setting
+**end_date_derived_from_statements** to true.
+
+The default is false, i.e. use only tag 62 or 62F.
 
 ```
 [asnb]
 plugin = mt940
 bank_code = ASNB
 bank_id = myasnbbankid
-ignore_check_end_date = True
+end_date_derived_from_statements = true
 ```
 
 ### Advanced conversions (using the configuration)

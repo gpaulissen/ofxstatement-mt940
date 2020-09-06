@@ -40,13 +40,12 @@ def get_bank_id(bank_code: str) -> str:
 class Parser(BaseStatementParser):
     unique_id_set: Set[str]
 
-    def __init__(self, fin: IO[str], bank_code: str, bank_id: str, ignore_check_end_date: bool = False) -> None:
+    def __init__(self, fin: IO[str], bank_code: str, bank_id: str, end_date_derived_from_statements: bool = False) -> None:
         super().__init__()
-        self.statement = Statement(bank_id=bank_id,
-                                   ignore_check_end_date=ignore_check_end_date)
+        self.statement = Statement(bank_id=bank_id)
         self.fin = fin
         self.bank_code = bank_code.upper()
-        self.ignore_check_end_date = ignore_check_end_date
+        self.end_date_derived_from_statements = end_date_derived_from_statements
         self.unique_id_set = set()
 
     def parse(self) -> Statement:
@@ -68,6 +67,8 @@ class Parser(BaseStatementParser):
         stmt.end_balance = \
             Decimal(str(self.trs.data['final_closing_balance'].amount.amount))
         stmt.end_date = self.trs.data['final_closing_balance'].date
+        if self.end_date_derived_from_statements:
+            stmt.end_date = max(stmt.end_date, max(sl.date for sl in stmt.lines))
         stmt.end_date += datetime.timedelta(days=1)  # exclusive for OFX
 
         stmt.start_date = min(sl.date for sl in stmt.lines)
@@ -158,7 +159,7 @@ class Plugin(BasePlugin):
     def get_file_object_parser(self, fh: IO[str]) -> Parser:
         bank_code = 'ASN'
         bank_id = None
-        ignore_check_end_date = False
+        end_date_derived_from_statements = False
         if self.settings is None:
             pass
         else:
@@ -166,13 +167,13 @@ class Plugin(BasePlugin):
                 bank_code = self.settings.get('bank_code')
             if 'bank_id' in self.settings:
                 bank_id = self.settings.get('bank_id')
-            if 'ignore_check_end_date' in self.settings:
-                ignore_check_end_date = (self.settings.get('ignore_check_end_date').lower() == 'true')
+            if 'end_date_derived_from_statements' in self.settings:
+                end_date_derived_from_statements = (self.settings.get('end_date_derived_from_statements').lower() == 'true')
 
         if bank_id is None:
             bank_id = get_bank_id(bank_code)
 
-        parser = Parser(fh, bank_code, bank_id, ignore_check_end_date)
+        parser = Parser(fh, bank_code, bank_id, end_date_derived_from_statements)
         return parser
 
     def get_parser(self, filename: str) -> Parser:
