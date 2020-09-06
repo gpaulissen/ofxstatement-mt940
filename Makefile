@@ -2,16 +2,44 @@
 
 GIT = git
 PYTHON = python
+MYPY = mypy
+PIP = pip
+PROJECT = ofxstatement-mt940
 
-.PHONY: test dist distclean upload
+# OS specific section
+ifeq '$(findstring ;,$(PATH))' ';'
+    detected_OS := Windows
+else
+    detected_OS := $(shell uname 2>/dev/null || echo Unknown)
+    detected_OS := $(patsubst CYGWIN%,Cygwin,$(detected_OS))
+    detected_OS := $(patsubst MSYS%,MSYS,$(detected_OS))
+    detected_OS := $(patsubst MINGW%,MSYS,$(detected_OS))
+endif
+
+ifeq ($(detected_OS),Windows)
+    RM_EGGS = pushd $(CONDA_PREFIX) && del /s/p $(PROJECT).egg-link $(PROJECT)-nspkg.pth
+else
+    RM_EGGS = cd $(CONDA_PREFIX) && find . \( -name $(PROJECT).egg-link -o -name $(PROJECT)-nspkg.pth \) -exec rm -i {} \;
+endif
+
+.PHONY: clean install test dist distclean upload
 
 clean:
 	$(PYTHON) setup.py clean --all
+	$(RM_EGGS)
+	$(PYTHON) -Bc "import pathlib; [p.unlink() for p in pathlib.Path('.').rglob('*.py[co]')]"
+	$(PYTHON) -Bc "import pathlib; [p.rmdir() for p in pathlib.Path('.').rglob('__pycache__')]"
+	-$(PYTHON) -Bc "import shutil; shutil.rmtree('.pytest_cache')"
 
-test: clean
-	$(PYTHON) -m pytest
+install: clean
+	$(PIP) install -e .
+	$(PIP) install -r test_requirements.txt
 
-dist: test
+test:
+	$(MYPY) --show-error-codes src
+	$(PYTHON) -m pytest --exitfirst
+
+dist: install test
 	$(PYTHON) setup.py sdist bdist_wheel
 	$(PYTHON) -m twine check dist/*
 

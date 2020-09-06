@@ -14,3 +14,4 @@ eggs
 htmlcov
 .coverage
 .eggs
+.mypy_cache

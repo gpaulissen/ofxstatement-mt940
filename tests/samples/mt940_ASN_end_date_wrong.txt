@@ -1,0 +1,14 @@
+{1:F01ASNBNL21XXXX0000000000}{2:O940ASNBNL21XXXXN}{3:}{4:
+:20:0000000000
+:25:NL81ASNB9999999999
+:28C:245/1
+:60F:C200901EUR500,00
+:61:2009030901D250,00NEFF
+:86: 
+                                                                 
+Voor u gekocht via Euronext Fund Services: 4,1363 Participaties A
+SN Duurzaam Mixfonds Zeer      Offensief a EUR 60,44.          Va
+lutadatum: 03/09/2020. Positie na transactie: 12,7189 ASN     Duu
+rzaam Mixfonds Zeer          Offensief. (Trans.nr. 10176498)     
+:62F:C200901EUR250,00
+-}{5:}

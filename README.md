@@ -108,7 +108,7 @@ bank_id = myasnbbankid
 
 ```
 
-### Bank codes and their bank id
+#### Bank codes and their bank id
 
 These are the predefined bank codes (case insensitive) and their corresponding
 bank id's (tag BANKID) in the OFX file:
@@ -133,6 +133,24 @@ From the [MT940](https://github.com/WoLpH/mt940) project I have copied the
 special processing instructions for the banks tested there, thus ASN and
 MBANK. Other banks do not seem to need special instructions to parse their
 MT940 file.
+
+#### Other configuration options
+
+In certain situations you may get this error from your bank document download:
+
+```
+The statement end date (2020-09-02) should be greater than the largest statement line date (2020-09-03)
+```
+
+You can ignore this by setting ignore_check_end_date to True:
+
+```
+[asnb]
+plugin = mt940
+bank_code = ASNB
+bank_id = myasnbbankid
+ignore_check_end_date = True
+```
 
 ### Advanced conversions (using the configuration)
 

@@ -37,7 +37,7 @@ tests_require = [
     'pytest-cache',
     'pytest-cover',
     'pytest-flakes',
-    'pytest-pep8',
+    'pytest-pycodestyle',
     'flake8',
 ]
 
