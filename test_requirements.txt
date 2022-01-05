@@ -1,5 +1,9 @@
+flake8
+mypy
 pytest
+pytest-cache
 pytest-cover
 pytest-flakes
 pytest-pep8
-flake8
+pytest-pycodestyle
+pyyaml

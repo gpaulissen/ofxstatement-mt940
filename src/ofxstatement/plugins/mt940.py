@@ -8,7 +8,7 @@ import logging
 from pprint import pformat
 import re
 
-import mt940
+from mt940.processors import mBank_set_transaction_code, mBank_set_iph_id, mBank_set_tnr
 from mt940.tags import StatementASNB
 from mt940.models import Transaction, Transactions
 
@@ -94,9 +94,9 @@ class Parser(BaseStatementParser):
             # mt940/tree/develop/mt940_tests/test_processors.py
             self.trs = Transactions(processors=dict(
                 post_transaction_details=[
-                    mt940.processors.mBank_set_transaction_code,
-                    mt940.processors.mBank_set_iph_id,
-                    mt940.processors.mBank_set_tnr,
+                    mBank_set_transaction_code,
+                    mBank_set_iph_id,
+                    mBank_set_tnr,
                 ],
             ))
         else:

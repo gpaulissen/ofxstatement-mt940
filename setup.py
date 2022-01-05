@@ -32,13 +32,15 @@ class PyTest(TestCommand):
 
 
 tests_require = [
-    'pyyaml',
+    'flake8',
+    'mypy',
     'pytest',
     'pytest-cache',
     'pytest-cover',
     'pytest-flakes',
+    'pytest-pep8',
     'pytest-pycodestyle',
-    'flake8',
+    'pyyaml',
 ]
 
 
