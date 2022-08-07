@@ -8,8 +8,15 @@ import pytest
 from ofxstatement.plugins.mt940 import Plugin, get_bank_id
 from ofxstatement.exceptions import ValidationError
 
+from mt940.models import Transaction
+from mt940.models import Amount
+
+from src.ofxstatement.plugins.mt940 import Parser
+
 
 class ParserTest(TestCase):
+
+    # Integration tests:
 
     def test_ASN(self):
         # Create and configure parser:
@@ -173,3 +180,85 @@ class ParserTest(TestCase):
 
         # And parse:
         parser.parse().assert_valid()
+
+    # Unit tests:
+
+    def test_parse_record_parses_transaction_with_full_set_of_data(self):
+        transaction = Transaction(None)
+        transaction.update({
+            'customer_reference': '1234',
+            'extra_details': 'Jane Doe',
+            'amount': Amount('42', 'D'),
+            'transaction_details': 'Some details',
+            'date': datetime(2022, 2, 2).date(),
+        })
+
+        parser = Parser('', '', '')
+        statement_line = parser.parse_record(transaction)
+
+        self.assertEqual(statement_line.amount, Decimal('-42.00'))
+        self.assertEqual(statement_line.date, datetime.strptime("2022-02-02", parser.date_format).date())
+        self.assertEqual(statement_line.memo, 'Some details')
+        self.assertEqual(statement_line.payee, 'Jane Doe (1234)')
+
+    def test_parse_record_parses_transaction_with_only_mandatory_data(self):
+        transaction = Transaction(None)
+        transaction.update({
+            'customer_reference': '1234',
+            'extra_details': 'Jane Doe',
+            'amount': Amount('42', 'D'),
+            'date': datetime(2022, 2, 2).date(),
+        })
+
+        parser = Parser('', '', '')
+        statement_line = parser.parse_record(transaction)
+
+        self.assertEqual(statement_line.amount, Decimal('-42.00'))
+        self.assertEqual(statement_line.date, datetime.strptime("2022-02-02", parser.date_format).date())
+        self.assertEqual(statement_line.memo, 'UNKNOWN')
+        self.assertEqual(statement_line.payee, 'Jane Doe (1234)')
+
+    def test_parse_record_uses_purpose_if_given_and_transaction_details_are_missing(self):
+        transaction = Transaction(None)
+        transaction.update({
+            'customer_reference': '1234',
+            'extra_details': 'Jane Doe',
+            'amount': Amount('42', 'D'),
+            'purpose': 'Some purpose',
+            'date': datetime(2022, 2, 2).date(),
+        })
+
+        parser = Parser('', '', '')
+        statement_line = parser.parse_record(transaction)
+
+        self.assertEqual(statement_line.memo, 'Some purpose')
+
+    def test_parse_record_removes_payee_from_memo(self):
+        transaction = Transaction(None)
+        transaction.update({
+            'customer_reference': '1234',
+            'extra_details': 'Jane Doe',
+            'amount': Amount('42', 'D'),
+            'transaction_details': 'Some details Jane Doe 1234',
+            'date': datetime(2022, 2, 2).date(),
+        })
+
+        parser = Parser('', '', '')
+        statement_line = parser.parse_record(transaction)
+
+        self.assertEqual(statement_line.memo, 'Some details')
+
+    def test_parse_record_skips_zero_value_transactions(self):
+        transaction = Transaction(None)
+        transaction.update({
+            'customer_reference': '1234',
+            'extra_details': 'Jane Doe',
+            'amount': Amount('0', 'C'),
+            'transaction_details': 'Some details',
+            'date': datetime(2022, 2, 2).date(),
+        })
+
+        parser = Parser('', '', '')
+        statement_line = parser.parse_record(transaction)
+
+        self.assertIsNone(statement_line)
